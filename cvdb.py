@@ -18,6 +18,9 @@ from dbmodels import IssueRef, SeriesRef, Issue
 from resources import Resources
 import cvimprints
 
+from System.Windows.Forms import Application, MessageBox, \
+    MessageBoxButtons, MessageBoxIcon
+
 clr.AddReference('System')
 from System.Net import WebRequest
 from System.IO import Directory, File, Path, StreamReader
@@ -651,15 +654,28 @@ def __issue_parse_summary(issue, dom):
    # grab the issue description, and do a bunch of modifications and 
    # replaces to massage it into a nicer "summary" text
 #   PARAGRAPH = re.compile(r'<br />')
+   #MessageBox.Show("CV Scraper Summary: " + dom.results.description, "Comic Summary")
    OVERVIEW = re.compile('Overview')
-   PARAGRAPH = re.compile(r'<[bB][rR] ?/?>|<[Pp] ?>|<[Hh]2 ?>')
-   LISTITEMS = re.compile(r'<li>')
+   #Additions by Azuravian
+   TITLES = re.compile(r'<[Pp]><[Bb]>|<[Pp]><[sS][tT][rR][oO][nN][gG]>')
+   CONNECTS = re.compile(r'</[Pp]><[Pp]>')
+   HEADINGS = re.compile(r'<[Hh][1-5] ?>')
+   HEADINGS2 = re.compile(r'</[Hh][1-5] ?>')
+   LISTITEMS = re.compile(r'<[Ll][Ii]>')
+   #End Additions
+   PARAGRAPH = re.compile(r'<[bB][rR] ?/?>|<[Pp] ?>|<[Hh][1-5] ?>|</[Uu][Ll] ?>')
+   BOLD = re.compile(r'<[Bb]>|<[sS][tT][rR][oO][nN][gG]>|</[Bb]>|</[sS][tT][rR][oO][nN][gG]>')
    NBSP = re.compile('&nbsp;?')
    MULTISPACES = re.compile(' {2,}')
    STRIP_TAGS = re.compile('<.*?>')
    LIST_OF_COVERS = re.compile('(?is)list of covers.*$')
    if is_string(dom.results.description):
       summary_s = OVERVIEW.sub('', dom.results.description)
+      summary_s = HEADINGS.sub('\n<H2>**', summary_s)
+      summary_s = HEADINGS2.sub('**\n</H2>', summary_s)
+      summary_s = CONNECTS.sub('\n</p><p>', summary_s)
+      summary_s = TITLES.sub('\n<p><b>', summary_s)
+      summary_s = BOLD.sub('*', summary_s)
       summary_s = PARAGRAPH.sub('\n', summary_s)
       summary_s = LISTITEMS.sub('\n--', summary_s)
       summary_s = STRIP_TAGS.sub('', summary_s)
