@@ -649,6 +649,7 @@ def __issue_parse_story_credits(issue, dom):
 
 #===========================================================================            
 def __issue_parse_summary(issue, dom):
+   # sourcery skip: use-fstring-for-concatenation
    ''' Parse the current comic's summary details from the DOM. '''
 
    # grab the issue description, and do a bunch of modifications and 
@@ -662,9 +663,10 @@ def __issue_parse_summary(issue, dom):
    HEADINGS = re.compile(r'<[Hh][1-5] ?>')
    HEADINGS2 = re.compile(r'</[Hh][1-5] ?>')
    LISTITEMS = re.compile(r'<[Ll][Ii]>')
+   MULTILINE = re.compile('\n{2,}')
+   BOLD = re.compile(r'<[Bb]>|<[sS][tT][rR][oO][nN][gG]>|</[Bb]>|</[sS][tT][rR][oO][nN][gG]>')
    #End Additions
    PARAGRAPH = re.compile(r'<[bB][rR] ?/?>|<[Pp] ?>|<[Hh][1-5] ?>|</[Uu][Ll] ?>')
-   BOLD = re.compile(r'<[Bb]>|<[sS][tT][rR][oO][nN][gG]>|</[Bb]>|</[sS][tT][rR][oO][nN][gG]>')
    NBSP = re.compile('&nbsp;?')
    MULTISPACES = re.compile(' {2,}')
    STRIP_TAGS = re.compile('<.*?>')
@@ -682,12 +684,14 @@ def __issue_parse_summary(issue, dom):
       summary_s = MULTISPACES.sub(' ', summary_s)
       summary_s = NBSP.sub(' ' , summary_s)
       summary_s = PARAGRAPH.sub('\n', summary_s)
+      summary_s = MULTILINE.sub('\n\n', summary_s)
       summary_s = summary_s.replace(r'&amp;', '&')
       summary_s = summary_s.replace(r'&quot;', '"')
       summary_s = summary_s.replace(r'&lt;', '<')
       summary_s = summary_s.replace(r'&gt;', '>')
       summary_s = LIST_OF_COVERS.sub('', summary_s);
       issue.summary_s = summary_s.strip()
+
       
 #===========================================================================         
 def __issue_parse_roles(issue, dom):
